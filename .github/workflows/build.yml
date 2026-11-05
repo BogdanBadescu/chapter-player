@@ -1,0 +1,80 @@
+name: Build Windows exe
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+      artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instaleaza dependintele
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: Descarca libmpv
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python setup_mpv.py
+
+      - name: Verifica importurile
+        run: python -c "import PySide6.QtCore, PySide6.QtWidgets, mpv, numpy; print('imports ok')"
+
+      - name: Construieste exe
+        run: >
+          pyinstaller --noconfirm --clean --onefile --windowed
+          --name ChapterPlayer
+          --icon app_icon.ico
+          --add-binary "libmpv-2.dll;."
+          --add-data "app_icon.ico;."
+          --exclude-module tkinter
+          --exclude-module PySide6.QtNetwork
+          --exclude-module PySide6.QtQml
+          --exclude-module PySide6.QtQuick
+          --exclude-module PySide6.QtPdf
+          --exclude-module PySide6.QtOpenGL
+          player.py
+
+      - name: Incarca exe nesemnat
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChapterPlayer-unsigned
+          path: dist/ChapterPlayer.exe
+
+  # Se activeaza DOAR dupa ce SignPath Foundation aproba proiectul.
+  # Dupa aprobare: seteaza in GitHub (Settings > Secrets and variables > Actions):
+  #   secret   SIGNPATH_API_TOKEN
+  #   variable SIGNPATH_ORGANIZATION_ID
+  # si inlocuieste "if: false" cu "if: true" mai jos.
+  sign:
+    needs: build
+    if: false
+    runs-on: windows-latest
+    steps:
+      - name: Semneaza cu SignPath
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: chapter-player
+          signing-policy-slug: release-signing
+          github-artifact-id: ${{ needs.build.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Incarca exe semnat
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChapterPlayer-signed
+          path: signed/
