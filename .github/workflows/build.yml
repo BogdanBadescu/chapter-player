@@ -28,7 +28,9 @@ jobs:
         run: python setup_mpv.py
 
       - name: Verifica importurile
-        run: python -c "import PySide6.QtCore, PySide6.QtWidgets, mpv, numpy; print('imports ok')"
+        run: |
+          $env:PATH = "$PWD;$env:PATH"
+          python -c "import PySide6.QtCore, PySide6.QtWidgets, mpv, numpy; print('imports ok')"
 
       - name: Construieste exe
         run: >
