@@ -33,5 +33,13 @@ GPL-3.0-or-later, vezi `LICENSE`. Folosește:
 - [python-mpv](https://github.com/jaseg/python-mpv) (GPL-2.0-or-later / LGPL-2.1-or-later)
 - [NumPy](https://numpy.org/) (BSD-3-Clause)
 
-## Politica de semnare a codului
-Executabilele publicate sunt construite automat în GitHub Actions din acest repository și semnate cu SignPath (după aprobare).
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- **Committers and reviewers:** [Bogdan Badescu](https://github.com/BogdanBadescu)
+- **Approvers:** [Bogdan Badescu](https://github.com/BogdanBadescu)
+
+Executables are built automatically from this repository by GitHub Actions (`.github/workflows/build.yml`). Only binaries built from this source are signed, and every release is approved manually before signing. All team members use multi-factor authentication.
+
+**Privacy policy:** this program does not collect or send any data to the network. It works fully offline. It only stores the last playback position and a waveform cache on the local computer (`~/.chapter_player.json`, `~/.chapter_player_cache/`).
